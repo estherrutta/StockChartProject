@@ -1,4 +1,4 @@
-# real-time-app
+# Stock Chart Project
 
 ## Project setup
 ```
