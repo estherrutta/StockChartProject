@@ -1,12 +1,81 @@
 <template>
   <div>
+    <v-row> <v-card-title class="text-h4">Assets</v-card-title> </v-row
+    ><v-row>
+      <v-col cols="11"
+        ><v-expansion-panels v-model="selected"
+          ><v-expansion-panel>
+            <v-expansion-panel-header>
+              <span class=".text-heading-5 mt-1 grey--text"
+                >Filters</span
+              > </v-expansion-panel-header
+            ><v-expansion-panel-content>
+              <v-row align="center">
+                <v-col cols="auto"> <span>Asset Id</span> </v-col
+                ><v-col cols="1">
+                  <v-text-field
+                    v-model="filterByAssetId"
+                    type="number"
+                    label="Id"
+                    dense
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="auto"> <span>Asset Name</span> </v-col
+                ><v-col cols="1">
+                  <v-text-field
+                    v-model="filterByName"
+                    type="string"
+                    label="Name"
+                    dense
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="auto"> <span>Asset Price</span> </v-col
+                ><v-col cols="1">
+                  <v-text-field
+                    v-model="filterByPrice"
+                    type="number"
+                    label="Less Than"
+                    dense
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="auto"> <span>Last Update</span> </v-col
+                ><v-col cols="2">
+                  <v-text-field
+                    v-model="filterByLastUpdate"
+                    type="date"
+                    label="Less Than"
+                    dense
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="auto"> <span>Asset Type</span> </v-col
+                ><v-col cols="1">
+                  <v-text-field
+                    v-model="filterByType"
+                    type="string"
+                    label="Type"
+                    dense
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="1"
+                  ><v-btn
+                    outlined
+                    class="mt-12"
+                    color="indigo"
+                    @click="clearFilters"
+                    >Clear Filters</v-btn
+                  >
+                </v-col>
+              </v-row></v-expansion-panel-content
+            >
+          </v-expansion-panel>
+        </v-expansion-panels></v-col
+      ></v-row
+    >
     <v-row
-      ><v-col cols="3"> <v-card-title>Assets</v-card-title> </v-col> </v-row
-    ><v-row
-      ><v-col cols="10"
+      ><v-col cols="11"
         ><v-data-table
           :headers="headers"
-          :items="assets"
+          :items="sortedAssetlist"
           :items-per-page="15"
           class="elevation-6"
         >
@@ -17,113 +86,86 @@
             <span>${{ item.price }}</span>
           </template>
           <template v-slot:item.isFavorite="{ item }">
-            <v-checkbox
-              @input="setIsFavorite(item.assetId, Event)"
-            ></v-checkbox>
-          </template>
+            <v-btn icon @click="toggleIsFavorite(item.assetId)"
+              ><v-icon v-if="item.isFavorite" color="yellow darken-3">
+                mdi-star</v-icon
+              >
 
-          <template v-slot:body.prepend>
-            <tr>
-              <td>
-                <v-text-field
-                  v-model="assetId"
-                  type="number"
-                  label="Id"
-                  dense
-                ></v-text-field>
-              </td>
-              <td>
-                <v-text-field
-                  v-model="name"
-                  type="string"
-                  label="Name"
-                  dense
-                ></v-text-field>
-              </td>
-              <td>
-                <v-text-field
-                  v-model="price"
-                  type="number"
-                  label="Less than"
-                  dense
-                ></v-text-field>
-              </td>
-              <td>
-                <v-text-field
-                  v-model="lastUpdate"
-                  type="number"
-                  label="Less Than"
-                  dense
-                ></v-text-field>
-              </td>
-              <td>
-                <v-text-field
-                  v-model="type"
-                  type="string"
-                  label="Type"
-                  dense
-                ></v-text-field>
-              </td>
-            </tr> </template></v-data-table></v-col
-      ><v-col cols="1"
-        ><v-btn outlined class="mt-12" color="indigo" @click="clearFilters"
-          >Clear Filters</v-btn
-        >
-      </v-col></v-row
+              <v-icon v-else color="grey lighten-1">
+                mdi-star-outline
+              </v-icon>
+            </v-btn>
+          </template>
+        </v-data-table></v-col
+      ></v-row
     >
   </div>
 </template>
 <script lang="ts">
-import { mapGetters, mapState } from "vuex";
+import { mapGetters } from "vuex";
 import Vue from "vue";
 
+import Vuex from "vuex";
 export default Vue.extend({
+  computed: {
+    ...mapGetters(["assetList"]),
+    sortedAssetlist() {
+      if (Array.isArray(this.assetList)) {
+        return this.assetList.sort((x, y) => y.isFavorite - x.isFavorite);
+      }
+      return [];
+    },
+  },
   data() {
     return {
-      search: "",
-      assetId: "",
-      name: "",
-      price: "",
-      lastUpdate: "",
-      type: "",
+      selected: [],
+      filterByAssetId: "",
+      filterByName: "",
+      filterByPrice: "",
+      filterByLastUpdate: "",
+      filterByType: "",
       headers: [
         {
           text: "ID",
           align: "start",
           value: "assetId",
           filter: (value) => {
-            if (!this.assetId) return true;
-            return value == parseInt(this.assetId);
+            if (!this.filterByAssetId) return true;
+            return value == parseInt(this.filterByAssetId);
           },
         },
         {
           text: "Name",
           value: "assetName",
           filter: (value) => {
-            return (value + "").toLowerCase().includes(this.name.toLowerCase());
+            return (value + "")
+              .toLowerCase()
+              .includes(this.filterByName.toLowerCase());
           },
         },
         {
           text: "Price",
           value: "price",
           filter: (value) => {
-            if (!this.price) return true;
-            return value < parseInt(this.price);
+            if (!this.filterByPrice) return true;
+            return value < parseInt(this.filterByPrice);
           },
         },
         {
           text: "Last Update",
           value: "lastUpdate",
           filter: (value) => {
-            if (!this.lastUpdate) return true;
-            return value == parseInt(this.lastUpdate);
+            if (!this.filterByLastUpdate) return true;
+            return value == parseInt(this.filterByLastUpdate);
           },
         },
         {
           text: "Type",
           value: "assetType",
           filter: (value) => {
-            return (value + "").toLowerCase().includes(this.type.toLowerCase());
+            return (value + "")
+              .toLowerCase()
+              .includes(this.filterByType.toLowerCase());
           },
         },
         {
@@ -133,23 +175,18 @@ export default Vue.extend({
       ],
     };
   },
-  computed: {
-    ...mapState(["stockList"]),
-    ...mapGetters(["assets"]),
-    assetList: function() {
-      return Object.values(this.stockList);
-    },
-  },
+
   methods: {
-    clearFilters: function() {
-      this.assetId = "";
-      this.name = "";
-      this.price = "";
-      this.lastUpdate = "";
-      this.type = "";
+    toggleIsFavorite: function(id) {
+      var value = this.$store.state.assetObject[id].isFavorite;
+      this.$store.commit("setIsFavorite", { assetId: id, value: !value });
     },
-    setIsFavorite: function(id,value) {
-      this.$store.commit("setIsFavorite", { assetId: id, value: value });
+    clearFilters: function() {
+      this.filterByAssetId = "";
+      this.filterByName = "";
+      this.filterByPrice = "";
+      this.filterByLastUpdate = "";
+      this.filterByType = "";
     },
   },
 });

@@ -6,34 +6,31 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
   state: {
-    stockList: {},
-    subscriber: null,
+    assetObject: {},
+    subscriber: null
   },
   getters: {
-    assets: (state) => {
-      var listOfStocks = Object.values(state.stockList);
-      return listOfStocks.sort((a, b) => {
-        return b.isFavorite - a.isFavorite;
-      });
+    assetList: (state) => {
+      return Object.values(state.assetObject);
     },
   },
   mutations: {
     updateStockObject: (state, payload) => {
-      console.log(state.stockList[payload.assetId]);
-      if (state.stockList[payload.assetId] != null) {
-        state.stockList[payload.assetId].price = payload.price;
-        state.stockList[payload.assetId].lastUpdate = payload.lastUpdate;
+      if (state.assetObject[payload.assetId] != null) {
+        state.assetObject[payload.assetId].price = payload.price;
+        state.assetObject[payload.assetId].lastUpdate = payload.lastUpdate;
       } else {
-        Vue.set(state.stockList, payload.assetId, {});
-        Vue.set(state.stockList, payload.assetId, payload);
+        Vue.set(state.assetObject, payload.assetId, {});
+        Vue.set(state.assetObject, payload.assetId, payload);
       }
     },
     setSubscriber: (state, payload) => {
       state.subscriber = payload;
     },
     setIsFavorite: (state, payload) => {
-      state.stockList[payload.assetId].isFavorite = payload.value;
+      state.assetObject[payload.assetId].isFavorite = payload.value;
     },
+     
   },
   actions: {
     startObservable: ({ commit }) => {
